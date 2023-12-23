@@ -1,10 +1,10 @@
 import tensorflow as tf
-from keras import layers
-import keras
 
-class GeM(layers.Layer):
-    def __init__(self, pool_size, init_norm=3.0, normalize=False, **kwargs):
-        self.pool_size = pool_size
+from tensorflow import keras
+
+
+class GeM(keras.layers.Layer):
+    def __init__(self, init_norm=3.0, normalize=True, **kwargs):
         self.init_norm = init_norm
         self.normalize = normalize
 
@@ -22,16 +22,18 @@ class GeM(layers.Layer):
         x = tf.math.maximum(x, 1e-6)
         x = tf.pow(x, self.p)
 
-        x = tf.nn.avg_pool(
-            x,
-            self.pool_size,
-            self.pool_size,
-            'VALID',
-        )
+        # x = tf.nn.avg_pool2d(
+        #     x,
+        #     self.pool_size,
+        #     self.pool_size,
+        #     'VALID',
+        # )
+        x = keras.layers.GlobalAveragePooling2D()(x)
         x = tf.pow(x, 1.0 / self.p)
 
         if self.normalize:
             x = tf.nn.l2_normalize(x, 1)
+
         return x
 
     def compute_output_shape(self, input_shape):
