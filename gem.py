@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 
+@keras.saving.register_keras_serializable(package="keras-gem", name="GeM")
 class GeM(keras.layers.Layer):
     def __init__(self, init_norm=3.0, normalize=True, **kwargs):
         self.init_norm = init_norm
@@ -22,12 +23,6 @@ class GeM(keras.layers.Layer):
         x = tf.math.maximum(x, 1e-6)
         x = tf.pow(x, self.p)
 
-        # x = tf.nn.avg_pool2d(
-        #     x,
-        #     self.pool_size,
-        #     self.pool_size,
-        #     'VALID',
-        # )
         x = keras.layers.GlobalAveragePooling2D()(x)
         x = tf.pow(x, 1.0 / self.p)
 
@@ -38,3 +33,11 @@ class GeM(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         return tuple([None, input_shape[-1]])
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {"init_norm": self.init_norm,
+             "normalize": self.normalize}
+        )
+        return config
